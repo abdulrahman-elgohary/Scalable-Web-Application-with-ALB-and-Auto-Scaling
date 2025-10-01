@@ -216,6 +216,9 @@ You can find the SQL Dump file from the following link :
 https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-200-ACACAD-3-113230/22-lab-Capstone-project/s3/Countrydatadump.sql
 
 - Use the command `wget` to download it inside the EC2
+
+<img width="1345" height="281" alt="image" src="https://github.com/user-attachments/assets/b29614a7-0415-4ef5-b04d-a2535609a915" />
+
 ---
 
 ## 9) Monitoring, Alarms & Notifications
