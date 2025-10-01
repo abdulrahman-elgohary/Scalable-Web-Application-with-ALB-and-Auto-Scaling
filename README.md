@@ -254,8 +254,6 @@ https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-200-ACACAD-3-11323
 ## 10) Test
 
 * **EC2 → Load Balancers → alb-webapp → DNS name** (copy) → open in a browser.
-* Refresh multiple times; you should see responses served by different instance IDs (from the user-data HTML).
-* Trigger scale-out by running a CPU load test on instances (or temporarily lower the target tracking threshold), watch **ASG → Activity**.
 
 <img width="1333" height="574" alt="image" src="https://github.com/user-attachments/assets/efdba058-1c05-4d69-b86d-399d8eba0867" />
 
