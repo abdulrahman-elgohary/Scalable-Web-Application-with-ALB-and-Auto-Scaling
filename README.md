@@ -4,7 +4,7 @@
 Deploy a simple, scalable, and cost-optimized web application on AWS using **EC2**, **Application Load Balancer**, **Auto Scaling**, **Amazon RDS**, **IAM**, **CloudWatch**, and **SNS** all via the **AWS Console**
 ---
 
-<img width="496" height="313" alt="image" src="https://github.com/user-attachments/assets/a70251cf-005c-46d6-be8a-c9e66a3f77d7" />
+<img width="596" height="413" alt="image" src="https://github.com/user-attachments/assets/a70251cf-005c-46d6-be8a-c9e66a3f77d7" />
 
 ---
 
