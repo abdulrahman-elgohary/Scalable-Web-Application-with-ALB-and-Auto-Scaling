@@ -228,6 +228,8 @@ https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-200-ACACAD-3-11323
 * **SNS → Topics → Create topic** (type: Standard), name: `alerts-webapp`
 * **Create subscription** → Protocol: **Email** → enter your email → **Confirm** the email you receive.
 
+<img width="1308" height="494" alt="image" src="https://github.com/user-attachments/assets/4001e652-06c3-4a5c-91cd-c519c3137895" />
+
 **CloudWatch Alarms**
 
 * **CloudWatch → Alarms → All alarms → Create alarm**
@@ -235,19 +237,6 @@ https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-200-ACACAD-3-11323
   * **ALB 5XXErrorCount** > 0 for 5 minutes → notify `alerts-webapp`
   * **ASG Average CPU** ≥ 80% for 10 minutes → notify `alerts-webapp`
   * **TargetGroupUnHealthyHostCount** > 0 for 5 minutes → notify `alerts-webapp`
-
-*(Optional)* Install **CloudWatch Agent** on instances to ship memory/disk metrics (use the `CloudWatchAgentServerPolicy` permission already attached).
-
----
-
-## 9) HTTPS (Optional but recommended)
-
-1. **ACM → Request a public certificate** for `app.example.com` (DNS validation with Route 53 is easiest).
-2. **EC2 → Load Balancers → alb-webapp → Listeners → Add listener (HTTPS:443)**
-
-   * Select the ACM certificate
-   * Default action: **Forward** to `tg-webapp`
-3. Add an **HTTP:80 → 301 Redirect to HTTPS** rule.
 
 ---
 
@@ -257,56 +246,10 @@ https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-200-ACACAD-3-11323
 * Refresh multiple times; you should see responses served by different instance IDs (from the user-data HTML).
 * Trigger scale-out by running a CPU load test on instances (or temporarily lower the target tracking threshold), watch **ASG → Activity**.
 
----
+<img width="1333" height="574" alt="image" src="https://github.com/user-attachments/assets/efdba058-1c05-4d69-b86d-399d8eba0867" />
 
-## 🔒 Security & 💰 Cost Tips
+- Test the query to `RDS`
 
-* Prefer **private subnets** for EC2 instances; keep only the ALB public.
-* Use **SSM Session Manager** instead of SSH and remove port 22.
-* Store app secrets in **AWS Secrets Manager** or **SSM Parameter Store** (SecureString).
-* Turn on **RDS automatic backups** and **deletion protection** (for prod).
-* Enable **ALB access logs** and, if required, **WAF** for L7 protection.
-* For demos, use **t3/t4g** burstables and set modest **ASG max** to cap cost.
+<img width="1277" height="538" alt="image" src="https://github.com/user-attachments/assets/8b18fcbf-77e1-4bdf-b960-2d0eb4558113" />
 
----
 
-## 🧹 Cleanup
-
-1. **Auto Scaling Groups** → delete ASG
-2. **Launch Templates** (if not used elsewhere) → delete
-3. **Load Balancer** and **Target Group** → delete
-4. **RDS** (if created) → take a final snapshot (optional) → delete
-5. **Security Groups**, **IAM role** (if unused), **SNS topic**, **ACM cert**, **S3 log bucket** (empty then delete)
-
----
-
-## 📁 Suggested Repo Structure
-
-```
-.
-├── README.md                # This file
-├── docs/
-│   ├── architecture-diagram.png   # optional screenshot
-│   └── screenshots/              # ALB, ASG, TG, alarms, etc.
-├── user-data/
-│   └── webapp-amzn-linux2.sh     # app install script (from above)
-└── app/                           # your app code (if any)
-```
-
----
-
-## 🧩 Troubleshooting
-
-* **ALB shows targets unhealthy**: confirm SG rules, health check path `/`, app listening on port 80, and instance User Data ran (`/var/log/cloud-init-output.log`).
-* **ASG not attaching to TG**: verify ASG “Load balancing” step selected `tg-webapp`.
-* **Cannot reach RDS**: check RDS SG inbound allows `sg-ec2-app` on the DB port; ensure instances can resolve RDS endpoint and have route/NAT for egress if in private subnets.
-
----
-
-## License
-
-MIT (adjust as needed)
-
----
-
-> Tip: Commit this README to your GitHub repo and add screenshots under `docs/screenshots` that match each Console step to make the guide even easier to follow.
