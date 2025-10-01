@@ -23,8 +23,8 @@ Deploy a simple, scalable, and cost-optimized web application on AWS using **EC2
 1. Trusted entity: **AWS service** → **EC2**.
 2. Permissions:
 
-   * **AmazonSSMManagedInstanceCore** (SSM Session Manager access—skip SSH keys)
-   * **CloudWatchAgentServerPolicy** (if you’ll install CloudWatch Agent later)
+   * **AmazonSSMManagedInstanceCore** 
+   * **CloudWatchAgentServerPolicy** 
 3. Name: `Inventory-App-Role` → **Create role**.
 
 > The role will be attached to instances via a Launch Template in the next steps.
@@ -33,7 +33,7 @@ Deploy a simple, scalable, and cost-optimized web application on AWS using **EC2
 
 ## 2) Security Groups (SG)
 
-Create **two** SGs.
+Create **three** SGs.
 
 ### A) ALB Security Group
 
@@ -55,6 +55,13 @@ Create **two** SGs.
 
   * `HTTP 80` **from** `ALBSG` 
 * Outbound: **All traffic** (default)
+
+### C) RDS Security Group
+
+* Name: `DBExample`
+* Inbound:
+
+  * `MYSQL 3306` **from** `Inventory-App` Security group of the EC2  
 
 ---
 
