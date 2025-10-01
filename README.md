@@ -21,8 +21,7 @@ Deploy a simple, scalable, and cost-optimized web application on AWS using **EC2
 
    * **AmazonSSMManagedInstanceCore** (SSM Session Manager access—skip SSH keys)
    * **CloudWatchAgentServerPolicy** (if you’ll install CloudWatch Agent later)
-   * (Optional) **AmazonS3ReadOnlyAccess** (if app reads S3), or a custom least-privilege policy.
-3. Name: `EC2WebAppRole` → **Create role**.
+3. Name: `Inventory-App-Role` → **Create role**.
 
 > The role will be attached to instances via a Launch Template in the next steps.
 
@@ -40,16 +39,17 @@ Create **two** SGs.
 * Inbound:
 
   * `HTTP 80` from `0.0.0.0/0`
-  * *(Optional)* `HTTPS 443` from `0.0.0.0/0` (requires ACM certificate later)
+  * `HTTPS 443` from `0.0.0.0/0`
 * Outbound: **All traffic** (default)
 
 ### B) EC2 (App) Security Group
 
-* Name: `sg-ec2-app`
+* Name: `Inventory-App`
 * Inbound:
 
-  * `HTTP 80` **from** `sg-alb-web` (type: Custom, source: the ALB SG)
-  * *(Optional for admin)* `SSH 22` from your IP or skip if using SSM
+<img width="1113" height="487" alt="image" src="https://github.com/user-attachments/assets/a914e688-2507-4c63-a667-ead35a40bfa3" />
+
+  * `HTTP 80` **from** `ALBSG` 
 * Outbound: **All traffic** (default)
 
 ---
@@ -91,30 +91,33 @@ Create **two** SGs.
 **Console path:** **EC2 → Launch Templates → Create launch template**
 
 * Name: `lt-webapp`
-* AMI: **Amazon Linux 2** (or Amazon Linux 2023)
-* Instance type: **t3.micro** (or **t3.small** for more headroom)
+* AMI: **Amazon Linux 2** 
+* Instance type: **t2.micro** 
 * Key pair: optional (if not using SSM)
-* Network settings: don’t attach SG here (ASG step will); or attach **`sg-ec2-app`** if the UI prompts
-* IAM instance profile: **`EC2WebAppRole`**
-* User data (example “hello web app”):
+* Network settings: **`Inventory-App`** 
+* IAM instance profile: **`Inventory-App-Role`**
+* User data (Use the following Script):
 
 ```bash
-#!/bin/bash
-# Minimal web app install (Amazon Linux 2)
-yum -y update
-yum -y install httpd
-cat >/var/www/html/index.html <<'HTML'
-<!doctype html>
-<html>
-<head><title>Hello from ASG</title></head>
-<body>
-<h1>It works!</h1>
-<p>Instance: $(curl -s http://169.254.169.254/latest/meta-data/instance-id)</p>
-</body>
-</html>
-HTML
-systemctl enable httpd
-systemctl start httpd
+#!/bin/bash -ex
+ dnf -y update
+ dnf -y install php8.2
+ dnf -y install mariadb105-server
+ dnf install -y php-mysqli
+ cd /var/www/html/
+ wget https://docs.aws.amazon.com/aws-sdk-php/v3/download/aws.zip
+ unzip aws -d /var/www/html
+ wget https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-200-ACACAD-3-113230/22-lab-Capstone-project/s3/Example.zip
+ #wget https://aws-tc-largeobjects.s3-us-west-2.amazonaws.com/CUR-TF-200-ACACAD-3-89090/22-lab-course-project/s3/Example.zip
+ unzip Example.zip
+ chkconfig httpd on
+ service httpd start
+ #wget https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-200-ACACAD-2/21-course-project/s3/Countrydatadump.sql
+ #chown ec2-user:ec2-user Countrydatadump.sql
+ #cd /var/www/html
+#wget https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-200-ACACAD-2/21-course-project/s3/Project.zip
+#unzip Project.zip -d /var/www/html/
+ chown -R ec2-user:ec2-user /var/www/html
 ```
 
 * **Create launch template**
@@ -127,13 +130,13 @@ systemctl start httpd
 
 **Console path:** **EC2 → Auto Scaling Groups → Create Auto Scaling group**
 
-1. **Choose launch template**: `lt-webapp`
-2. **VPC & Subnets**: select **two or more** subnets (prefer **private** subnets if using a NAT Gateway; public subnets are fine for quick demo).
+1. **Choose launch template**: `Manara-ASG`
+2. **VPC & Subnets**: select **two or more** subnets (prefer **private** subnets if using a NAT Gateway).
 3. **Load balancing**:
 
    * Attach to an existing load balancer: **Yes**
    * Choose **Application Load Balancer**
-   * Target group: **`tg-webapp`**
+   * Target group: **`Manara-TG`**
 4. **Health checks**:
 
    * Turn on **ELB health checks** (in addition to EC2), grace period **300s**.
@@ -145,7 +148,7 @@ systemctl start httpd
    * **Scale out**: Add 1 instance if **Average CPU ≥ 60%** for 2 consecutive periods of 5 minutes
    * **Scale in**: Remove 1 instance if **Average CPU ≤ 30%** for 2 periods
      *(Choose “Target tracking” on **Average CPU 50–60%** for simpler ops.)*
-7. **Instance distribution**: keep defaults; ensure **`sg-ec2-app`** is associated on the **Network** step if not set in the template.
+7. **Instance distribution**: keep defaults; ensure **`Inventory-App`** is associated on the **Network** step if not set in the template.
 8. **Create Auto Scaling group**.
 
 After a few minutes, ASG will launch two instances, register them to the target group, and ALB should report **healthy**.
