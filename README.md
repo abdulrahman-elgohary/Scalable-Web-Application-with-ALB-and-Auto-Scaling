@@ -181,7 +181,44 @@ Update your app config (via user data, SSM Parameter Store, or Secrets Manager) 
 
 ---
 
-## 8) Monitoring, Alarms & Notifications
+To document these steps in a clear, logical order for your GitHub repository, here's the sequence you can follow:
+
+---
+## 8) Imporitng Data to the RDS Instance 
+
+### Steps to Connect to EC2, RDS, and Import a Database:
+
+1. **SSH into EC2 Instance using Session Manager**
+   You will use AWS Session Manager to SSH into your EC2 instance. This eliminates the need for an open SSH port, and instead, the connection is managed through AWS Systems Manager.
+
+2. **Connect to the RDS Instance via MySQL from EC2**
+   Once inside your EC2 instance, you can use the MySQL command line tool to connect to the RDS instance. The credentials for connecting to RDS are retrieved from AWS Secrets Manager, and the command will look like this:
+
+   ```bash
+   mysql -u admin -p'Retrieved from secret manager' -h <RDS Endpoint> --database countries
+   ```
+
+   * Replace `admin` with the RDS username if different.
+   * Replace `Retrieved from secret manager` with the password retrieved from Secrets Manager.
+   * Replace `<RDS Endpoint>` with your RDS instance’s endpoint.
+
+3. **Import Database from Dump File to the `countries` Database**
+   After you’ve successfully connected to the RDS instance, you can import a database from a dump file into the `countries` database using the following command:
+
+   ```bash
+   mysql -u admin -p'Retrieved from secret manager' -h <RDS Endpoint> --database countries < (Filename)
+   ```
+
+   * Replace `(Filename)` with the full path to your SQL dump file on the EC2 instance.
+   * Ensure the SQL dump file is accessible to the EC2 instance.
+
+You can find the SQL Dump file from the following link :
+https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-200-ACACAD-3-113230/22-lab-Capstone-project/s3/Countrydatadump.sql
+
+- Use the command `wget` to download it inside the EC2
+---
+
+## 9) Monitoring, Alarms & Notifications
 
 **SNS Topic**
 
